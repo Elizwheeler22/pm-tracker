@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
@@ -109,7 +108,7 @@ def load_data():
         {"Project": "Q3 Marketing Launch",       "Risk": "Creative vendor delay",       "Level": "High",     "Owner": "James Okafor", "Mitigation": "Secondary vendor identified"},
         {"Project": "Mobile App v2.0",           "Risk": "App store review timeline",   "Level": "High",     "Owner": "Chris Rivera", "Mitigation": "Submission date moved up 3 weeks"},
         {"Project": "CRM Platform Migration",    "Risk": "Data volume underestimated",  "Level": "Medium",   "Owner": "Sarah Chen",   "Mitigation": "Additional ETL capacity provisioned"},
-        {"Project": "Analytics Infrastructure",  "Risk": "Q3 headcount gap",            "Level": "Medium",   "Owner": "Yuki Tanaka",  "Mitigation": "Contract resource request submitted"},
+        {"Project": "Analytics Infrastructure",  "Risk": "Q3 headcount gap",           "Level": "Medium",   "Owner": "Yuki Tanaka",  "Mitigation": "Contract resource request submitted"},
         {"Project": "Engineering Ops Revamp",    "Risk": "Adoption lag post-rollout",   "Level": "Low",      "Owner": "Priya Patel",  "Mitigation": "Champions program launched"},
     ])
 
@@ -288,12 +287,17 @@ with r_left:
 with r_right:
     rc = r_filtered["Level"].value_counts().reindex(["Critical","High","Medium","Low"], fill_value=0).reset_index()
     rc.columns = ["Level", "Count"]
-    fig_r = px.bar(rc, x="Count", y="Level", orientation="h", height=240,
-                   color="Level",
-                   color_discrete_map={"Critical": BLUSH, "High": AMBER, "Medium": GOLD, "Low": SAGE_LIGHT})
-    fig_r.update_layout(showlegend=False, paper_bgcolor=CREAM, plot_bgcolor=CREAM,
+    risk_color_map = {"Critical": BLUSH, "High": AMBER, "Medium": GOLD, "Low": SAGE_LIGHT}
+    fig_r = go.Figure()
+    for _, row in rc.iterrows():
+        fig_r.add_trace(go.Bar(
+            x=[row["Count"]], y=[row["Level"]], orientation="h",
+            name=row["Level"], marker_color=risk_color_map.get(row["Level"], SAGE),
+            showlegend=False
+        ))
+    fig_r.update_layout(paper_bgcolor=CREAM, plot_bgcolor=CREAM,
                         font=dict(color=TEXT_MID), margin=dict(l=0,r=0,t=10,b=0),
-                        xaxis_title="Count", yaxis_title="")
+                        height=240, xaxis_title="Count", yaxis_title="")
     st.plotly_chart(fig_r, use_container_width=True)
 
 # ── Workload Balance ──
